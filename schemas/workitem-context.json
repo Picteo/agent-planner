@@ -1,0 +1,180 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Work Item Context Package",
+  "description": "Structured context package for Azure DevOps work items destined for autonomous agent execution",
+  "type": "object",
+  "required": ["task_type", "title", "steps", "acceptance_criteria"],
+  "properties": {
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "create_file",
+        "modify_code",
+        "refactor",
+        "setup_repo",
+        "setup_project",
+        "fix_bug",
+        "config",
+        "documentation",
+        "testing",
+        "other"
+      ],
+      "description": "The category of work being performed"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Brief descriptive title of the work"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of what needs to be done and why"
+    },
+    "target_repository": {
+      "type": "string",
+      "description": "GitHub repository in owner/repo format (if external to local workspace)"
+    },
+    "target_branch": {
+      "type": "string",
+      "default": "main",
+      "description": "Git branch to work on"
+    },
+    "files_to_create": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Relative file path from repository root or workspace"
+          },
+          "language": {
+            "type": "string",
+            "description": "Programming language or file type"
+          },
+          "template": {
+            "type": "string",
+            "description": "Template to use if applicable (e.g., 'react-component', 'python-script')"
+          }
+        }
+      }
+    },
+    "files_to_modify": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "action"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Relative file path to modify"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["add_section", "replace", "delete", "update_imports"],
+            "description": "Type of modification"
+          },
+          "description": {
+            "type": "string",
+            "description": "What specifically to change"
+          }
+        }
+      }
+    },
+    "files_to_read": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "Files the agent should read for context before starting work"
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Sequential step-by-step instructions"
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Testable conditions that must be met for completion"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Technical constraints, requirements, or limitations"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "External dependencies (packages, services, other work items)"
+    },
+    "edge_cases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Known edge cases and how to handle them"
+    },
+    "testing_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Testing requirements (unit tests, integration tests, manual verification)"
+    },
+    "pr_requirements": {
+      "type": "object",
+      "properties": {
+        "base_branch": {
+          "type": "string",
+          "description": "Branch to merge into"
+        },
+        "reviewers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "GitHub usernames to request review from"
+        },
+        "label": {
+          "type": "string",
+          "description": "Label to apply to the PR"
+        }
+      }
+    },
+    "context_notes": {
+      "type": "string",
+      "description": "Any additional context, references, or notes that don't fit other fields"
+    }
+  },
+  "examples": [
+    {
+      "task_type": "create_file",
+      "title": "Add user profile page",
+      "steps": [
+        "Create ProfilePage.tsx in /src/pages/",
+        "Create ProfileForm.tsx component in /src/components/"
+      ],
+      "acceptance_criteria": [
+        "Profile page accessible at /profile route",
+        "User can edit name and email",
+        "Changes persist after reload"
+      ],
+      "constraints": [
+        "Use existing ThemeProvider",
+        "No new dependencies"
+      ]
+    }
+  ]
+}

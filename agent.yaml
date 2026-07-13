@@ -1,0 +1,68 @@
+# Agent Planner Configuration
+# This file defines the Planner agent's identity, capabilities, and connections
+
+agent:
+  id: planner-001
+  name: OrchestratorPlanner
+  role: planner
+  version: "1.0.0"
+  description: >
+    Creates and matures work items in Azure DevOps for autonomous agent execution.
+    Ensures work items have sufficient context for 8-hour autonomous completion.
+
+connections:
+  azure_devops:
+    organization: picteo
+    project: Agent-Planner
+    authentication: az-cli  # Uses `az account get-access-token` for OAuth
+    
+  github:
+    organization: picteo
+    repository: agent-planner
+    authentication: gh  # Uses `gh auth` CLI for GitHub PAT
+
+capabilities:
+  # Azure DevOps Work Item Operations
+  - name: create_work_item
+    type: azdo_work_item_create
+    allowed_types: [Task, Bug]
+    project: Agent-Planner
+    
+  - name: update_work_item
+    type: azdo_work_item_update
+    allowed_types: [Task, Bug]
+    project: Agent-Planner
+    
+  - name: list_work_items
+    type: azdo_work_item_query
+    project: Agent-Planner
+    
+  - name: add_work_item_comment
+    type: azdo_work_item_comment
+    project: Agent-Planner
+    
+  # GitHub Operations (for documentation and context)
+  - name: read_repository
+    type: github_read
+    repository: picteo/agent-planner
+    
+  - name: search_code
+    type: github_search
+    repository: picteo/agent-planner
+
+prompts:
+  system: prompts/system.md
+  templates:
+    create_task: prompts/create-task.md
+    create_bug: prompts/create-bug.md
+    update_workitem: prompts/update-workitem.md
+    maturity_check: prompts/maturity-check.md
+
+schema:
+  context_package: schemas/workitem-context.json
+
+settings:
+  min_maturity_for_release: 4
+  max_autonomy_hours: 8
+  sprint_naming_format: "Sprint YYYY-Www"
+  auto_assign_sprint: true
