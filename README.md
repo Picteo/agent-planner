@@ -208,9 +208,106 @@ Create sprints via:
 
 ## Agent Configuration
 
-### VS Code + Cline Setup
+### Option 1: Cline CLI (Recommended for Autonomous Agents)
 
-Each agent runs as a separate VS Code instance with the Cline extension:
+Cline CLI is installed and ready to use for headless, autonomous agent operation.
+
+#### Installation (Already Done)
+
+```bash
+# Node.js 22+ (via nvm)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+nvm install 22
+nvm use 22
+
+# Cline CLI
+npm i -g cline
+# Installed: cline v3.0.40
+```
+
+#### Configure MCP Servers for Agents
+
+Each agent needs access to Azure DevOps and GitHub MCP servers:
+
+```bash
+# Configure MCP servers for agent
+cline mcp add azure-devops -- url "http://localhost:3000" --name "azure-devops"
+cline mcp add github -- url "http://localhost:3001" --name "github"
+```
+
+Or manually edit the MCP settings file:
+```bash
+# Settings location
+~/.cline/data/settings/mcp.json
+```
+
+#### Run Planner Agent (CLI Mode)
+
+```bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+nvm use 22
+
+# Run planner with system prompt
+cline -s "$(cat prompts/system.md)" \
+      -c /home/twan/Documents/develop/agent-planner \
+      --auto-approve true \
+      "Create a new task work item for: Add user authentication to dashboard"
+```
+
+#### Run Coordinator Agent (Scheduled)
+
+```bash
+# Create a cron job to poll for ready work items
+crontab -e
+# Add: */5 * * * * /home/twan/Documents/develop/agent-planner/scripts/poll-and-dispatch.sh
+
+# poll-and-dispatch.sh
+#!/bin/bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+nvm use 22
+
+cline -s "$(cat prompts/system.md)" \
+      --auto-approve true \
+      --timeout 300 \
+      "Check for work items in 'Ready for Agent' state and dispatch to available agents"
+```
+
+#### Run Agent with Kanban Board
+
+```bash
+# Launch the kanban board for multi-agent orchestration
+cline --kanban
+
+# This opens http://localhost:3484 for visual orchestration
+```
+
+#### Run Agent with Team Mode
+
+```bash
+# Create a coordinator with specialists
+cline --team-name agent-orchestrator \
+      -s "$(cat prompts/system.md)" \
+      "Process all work items in 'Ready for Agent' state"
+```
+
+#### Example: Autonomous Agent Execution
+
+```bash
+# Agent receives work item context and executes autonomously
+cline --auto-approve true \
+      --worktree \
+      -c /tmp/agent-worktree \
+      -s "$(cat prompts/system.md)" \
+      "Execute work item #42: Add CSV export functionality.
+       Context: $(cat /tmp/workitem-42-context.json)"
+```
+
+### Option 2: VS Code + Cline Extension
+
+Each agent can also run as a separate VS Code instance with the Cline extension for visual monitoring:
 
 1. **Install VS Code** (if not already installed)
 2. **Install Cline extension** from the VS Code marketplace
@@ -220,32 +317,18 @@ Each agent runs as a separate VS Code instance with the Cline extension:
 4. **Load the agent.yaml** configuration file
 5. **Set the system prompt** from `prompts/system.md`
 
-### Autonomous Operation
-
-Agents can run autonomously without user input when:
-- The work item has maturity score ≥ 4
-- The Agent.Context field contains complete instructions
-- The Agent.AutonomyLevel is set to "Full"
-
-To start an agent autonomously:
-1. Create a scheduled task or cron job
-2. Have it poll AzDO for "Ready for Agent" work items
-3. Launch a headless VS Code instance with Cline
-4. Pass the work item context to the agent
-
-### Example: Headless Agent Launch
+To run multiple VS Code instances simultaneously:
 
 ```bash
-# Launch agent in headless mode with work item context
-code --user-data-dir=/tmp/agent1 \
+# Agent 1 - VS Code instance 1
+code --user-data-dir=/tmp/agent1-vscode \
      --extensions-dir=/tmp/agent1-extensions \
-     --disable-extensions \
-     --install-extension=saoudrizwan.claude-dev \
-     && code --user-data-dir=/tmp/agent1 \
-     --extensions-dir=/tmp/agent1-extensions \
-     --wait \
-     --new-window \
-     --goto agent-planner:workitem/42
+     --new-window
+
+# Agent 2 - VS Code instance 2
+code --user-data-dir=/tmp/agent2-vscode \
+     --extensions-dir=/tmp/agent2-extensions \
+     --new-window
 ```
 
 ## Work Item States
