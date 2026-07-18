@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 350" width="900" height="350">
+  <defs>
+    <style>
+      .state-backlog { fill: #8B5CF6; stroke: #6D28D9; stroke-width: 3; rx: 20; }
+      .state-ready { fill: #3B82F6; stroke: #2563EB; stroke-width: 3; rx: 20; }
+      .state-progress { fill: #F59E0B; stroke: #D97706; stroke-width: 3; rx: 20; }
+      .state-question { fill: #EF4444; stroke: #DC2626; stroke-width: 3; rx: 20; }
+      .state-done { fill: #10B981; stroke: #059669; stroke-width: 3; rx: 20; }
+      .state-start { fill: #6B7280; stroke: #4B5563; stroke-width: 2; }
+      .arrow-main { stroke: #4B5563; stroke-width: 2.5; fill: none; marker-end: url(#arrowhead); }
+      .arrow-loop { stroke: #F59E0B; stroke-width: 2.5; fill: none; marker-end: url(#arrowhead-amber); }
+      .arrow-done { stroke: #10B981; stroke-width: 2.5; fill: none; marker-end: url(#arrowhead-green); }
+      .label { font-family: 'Segoe UI', -apple-system, sans-serif; fill: #4B5563; font-size: 11; font-weight: bold; }
+      .box-text { font-family: 'Segoe UI', -apple-system, sans-serif; fill: white; font-size: 14; font-weight: bold; }
+      .box-text-small { font-family: 'Segoe UI', -apple-system, sans-serif; fill: white; font-size: 11; }
+      .shadow { filter: drop-shadow(2px 3px 5px rgba(0,0,0,0.2)); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4B5563"/>
+    </marker>
+    <marker id="arrowhead-amber" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#F59E0B"/>
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#10B981"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="350" fill="#F9FAFB" rx="12"/>
+
+  <!-- Title -->
+  <text x="450" y="35" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="18" font-weight="bold" fill="#1F2937">🔄 Agent Workflow State Machine</text>
+
+  <!-- Start circle -->
+  <circle cx="60" cy="175" r="18" class="state-start shadow"/>
+  <text x="60" y="180" text-anchor="middle" fill="white" font-family="Segoe UI" font-size="16" font-weight="bold">▶</text>
+
+  <!-- Arrow from start to Backlog -->
+  <line x1="78" y1="175" x2="135" y2="175" class="arrow-main"/>
+
+  <!-- Backlog State -->
+  <rect x="135" y="130" width="150" height="90" class="state-backlog shadow"/>
+  <text x="210" y="160" text-anchor="middle" class="box-text">📦 Backlog</text>
+  <text x="210" y="180" text-anchor="middle" class="box-text-small">(Created)</text>
+  <text x="210" y="210" text-anchor="middle" fill="#DDD6FE" font-family="Segoe UI" font-size="10">Initial state</text>
+
+  <!-- Arrow to Ready for Agent -->
+  <line x1="285" y1="175" x2="360" y2="175" class="arrow-main"/>
+  <text x="320" y="165" class="label" fill="#6D28D9">Planner releases</text>
+  <text x="320" y="180" class="label" fill="#6D28D9">(maturity ≥ 4)</text>
+
+  <!-- Ready for Agent State -->
+  <rect x="360" y="130" width="170" height="90" class="state-ready shadow"/>
+  <text x="445" y="160" text-anchor="middle" class="box-text">✅ Ready</text>
+  <text x="445" y="180" text-anchor="middle" class="box-text-small">for Agent</text>
+  <text x="445" y="210" text-anchor="middle" fill="#BFDBFE" font-family="Segoe UI" font-size="10">Awaiting dispatch</text>
+
+  <!-- Arrow to In Progress -->
+  <line x1="530" y1="175" x2="605" y2="175" class="arrow-main"/>
+  <text x="565" y="165" class="label" fill="#2563EB">Coordinator</text>
+  <text x="565" y="180" class="label" fill="#2563EB">dispatches</text>
+
+  <!-- In Progress State -->
+  <rect x="605" y="130" width="170" height="90" class="state-progress shadow"/>
+  <text x="690" y="160" text-anchor="middle" class="box-text">⚙️ In Progress</text>
+  <text x="690" y="180" text-anchor="middle" class="box-text-small">(Agent working)</text>
+  <text x="690" y="210" text-anchor="middle" fill="#FDE68A" font-family="Segoe UI" font-size="10">Active execution</text>
+
+  <!-- Arrow to Question (down) -->
+  <line x1="690" y1="220" x2="690" y2="255" class="arrow-main"/>
+  <text x="710" y="245" class="label" fill="#DC2626">Agent blocked</text>
+
+  <!-- Question State -->
+  <rect x="605" y="255" width="170" height="70" class="state-question shadow"/>
+  <text x="690" y="282" text-anchor="middle" class="box-text">❓ Question</text>
+  <text x="690" y="300" text-anchor="middle" class="box-text-small">(from Agent)</text>
+
+  <!-- Loop arrow: Question back to In Progress -->
+  <path d="M 605 290 Q 550 290 530 250 Q 510 210 550 195" class="arrow-loop" fill="none"/>
+  <text x="545" y="245" class="label" fill="#D97706" font-size="10">Coordinator answers</text>
+  <text x="545" y="258" class="label" fill="#D97706" font-size="10">(or asks user)</text>
+
+  <!-- Arrow from In Progress to Done (down) -->
+  <line x1="775" y1="175" x2="820" y2="175" class="arrow-done"/>
+  <text x="795" y="165" class="label" fill="#059669">Complete</text>
+
+  <!-- Done State -->
+  <rect x="820" y="130" width="70" height="90" class="state-done shadow"/>
+  <text x="855" y="175" text-anchor="middle" class="box-text" font-size="12">✅ Done</text>
+  <text x="855" y="195" text-anchor="middle" class="box-text-small">(Done)</text>
+
+  <!-- Arrow from Done to end circle -->
+  <line x1="855" y1="220" x2="855" y2="260" class="arrow-done"/>
+  <line x1="855" y1="260" x2="855" y2="300" class="arrow-done"/>
+
+  <!-- End circle -->
+  <circle cx="855" cy="310" r="15" class="state-start shadow"/>
+  <text x="855" y="315" text-anchor="middle" fill="white" font-family="Segoe UI" font-size="12" font-weight="bold">⏹</text>
+
+</svg>
