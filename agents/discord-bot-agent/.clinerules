@@ -1,0 +1,57 @@
+# Discord Bot Agent - Work Item #7 Context
+
+## Workspace Purpose
+This workspace is dedicated to **Work Item #7: Implement Discord bot framework with Supercell API integration** for the AliceIsBored Clan Discord Server & Bot project.
+
+## Project Overview
+- **Project:** DiscordCoC (Clash of Clans Clan Discord Server & Bot)
+- **Work Item:** #7 (Task)
+- **Parent:** Work Item #4 (Epic)
+- **Technology Stack:** Python, discord.py, Supercell API
+
+## Key Files
+- `src/main.py` - Main bot entry point (AliceIsBoredBot class)
+- `src/api_client.py` - Supercell API client implementation
+- `src/config.py` - Bot configuration (clan tag, API key, region)
+- `workitem-7-context.md` - Full work item specification
+- `README.md` - Setup and documentation
+
+## Configuration Requirements
+- **Bot Token:** Store in `DISCORD_BOT_TOKEN` environment variable
+- **API Key:** Store in `SUPERCELL_API_KEY` environment variable
+- **Clan Tag:** `AliceIsBored` (configurable in config.py)
+- **API Region:** Default `eu` (configurable)
+- Use `.env` file for local development (see `.env.example`)
+
+## Security Rules
+- **Never commit .env files or token values**
+- Tokens stored in keyring are encrypted at rest
+- When referencing tokens, mask them (e.g., `ghp_****`, `MT****`)
+- Only display full tokens when explicitly requested
+
+## Acceptance Criteria (Work Item #7)
+- [ ] Bot starts and connects to Discord successfully
+- [ ] Bot responds to ping command
+- [ ] Supercell API client can fetch clan info by clan tag
+- [ ] Supercell API client handles rate limiting correctly
+- [ ] API key and bot token are stored securely (env vars)
+- [ ] Bot logs API requests and responses (debug level)
+- [ ] Code is in repository with README for setup
+
+## Development Guidelines
+- Use Python 3.11+ with virtual environment
+- Follow PEP 8 style guidelines
+- Use black for code formatting
+- Use pylint for linting
+- All API calls must implement rate limiting (max 5 req/sec per Supercell ID)
+- Log at DEBUG level for API requests/responses
+
+## Parent Workspace
+- Root `.clinerules` contains credential management guidelines
+- Root workspace: `/home/twan/Documents/develop`
+- Credential management: GNOME Keyring (secret-tool, gh auth, az account)
+
+## Azure DevOps Context
+- **Organization:** Picteo
+- **Project:** DiscordCoC
+- **Work Item URL:** https://dev.azure.com/Picteo/_workitems/edit/7
