@@ -77,10 +77,24 @@ python src/main.py
 
 ## Available Commands
 
+### General
+- `/ping` — Check bot latency
+- `/config` — Show current bot configuration
+
+### Clan & Player Info
 - `/clan <tag>` — Display clan info (members, trophies, wars frequency)
 - `/player <tag>` — Display player profile (trophies, league, role, donations)
-- `/config` — Show current bot configuration (without sensitive data)
-- `/ping` — Check bot latency
+
+### Data Sync
+- `/sync entity:cwl|cw|raid|clan_games [tag:#ClanTag]` — Sync data from Supercell API
+
+### Verification
+- `/verify <tag>` — Link your Discord account to a Clash of Clans player tag
+- `/unverify` — Remove your Discord-to-Clash verification link
+- `/myclan` — Show your clan status and verification details
+
+### Status
+- `/status` — Show bot status and database statistics
 
 ## Windows VM Deployment
 
@@ -152,10 +166,16 @@ type C:\ClashKing\logs\restart_monitor.log
 
 ```
 src/
-├── main.py          # Bot entry point with slash commands
-├── api_client.py    # Supercell API client with rate limiting
-├── config.py        # Configuration (clan tag, API key, region)
-└── __init__.py      # Package init
+├── main.py              # Bot entry point with slash commands
+├── api_client.py        # Supercell API client with rate limiting
+├── config.py            # Configuration (clan tag, API key, region)
+├── database.py          # SQLAlchemy ORM models & session management
+├── cwl_service.py       # CWL sync service
+├── cw_service.py        # Clan War sync service
+├── raid_service.py      # Raid/Challenge sync service
+├── clan_games_service.py # Clan Games sync service
+├── verification_service.py # Discord verification & role mapping
+└── __init__.py          # Package init
 ```
 
 ## Architecture
@@ -165,7 +185,12 @@ launch_bot.bat
     └── run_bot.py (asyncio.run(main()))
             └── AliceIsBoredBot(commands.Bot)
                     ├── Slash commands: /ping, /clan, /player, /config
+                    ├── /sync (entity: cwl, cw, raid, clan_games)
+                    ├── /verify, /unverify, /myclan
+                    ├── /status
                     ├── SupercellAPIClient (aiohttp session)
+                    ├── CwlService, CwService, RaidService, ClanGamesService
+                    ├── VerificationService
                     └── BotConfig (.env + environment variables)
 ```
 

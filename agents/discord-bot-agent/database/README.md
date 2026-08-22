@@ -1,16 +1,47 @@
 # SQL Schema Application for Azure SQL Database
 
 ## Overview
-This directory contains the SQL schema for the DiscordCoC database. The schema defines the data model for managing Discord user profiles, clan information, and bot interactions.
+This directory contains the SQL schema for the DiscordCoC database. The schema defines the data model for managing Discord user profiles, clan information, player data, and bot interaction events from the Supercell Clash of Clans API.
 
 ## Schema Files
 - `schema.sql` - Complete DDL including tables, indexes, views, and stored procedures
 
 ## Tables Created
-1. `discord_user` - Discord user profile with guild, clan, and role mappings
-2. `clan` - Clan information linked to Supercell API
-3. `clan_member` - Clan membership with role, status, and join tracking
-4. `bot_interaction` - Bot command audit log with usage metrics
+
+### Core Tables
+1. **`clan`** - Clan information linked to Supercell API
+2. **`player`** - Player details from Supercell API
+3. **`clan_member`** - Clan membership with role, status, and join tracking
+4. **`discord_user`** - Discord user profile with guild, clan, and role mappings
+
+### CWL & War Tables
+5. **`CwlEvents`** - Clan War League season events
+6. **`CwlParticipations`** - Per-player per-day CWL participation stats
+7. **`clan_war`** - Regular Clan War data (non-CWL)
+8. **`CwEvents`** - Non-CWL Clan War events
+9. **`CwParticipations`** - Non-CWL war participation records
+
+### Raid & Clan Games Tables
+10. **`RaidEvents`** - Clash Quest / Raid events
+11. **`RaidParticipations`** - Raid participation records
+12. **`ClanGamesEvents`** - Clan Games events
+13. **`ClanGamesParticipations`** - Clan Games participation records
+
+### Analytics Tables
+14. **`Members`** - Verified clan members (Discord-linked)
+15. **`ContributionScores`** - Aggregated contribution scores per player per event
+
+### System Tables
+16. **`schema_migration`** - Schema version tracking
+
+## Stored Procedures
+- `dbo.upsert_clan` - Upsert clan data
+- `dbo.upsert_player` - Upsert player data
+- `dbo.upsert_discord_user` - Upsert Discord user mapping
+- `dbo.upsert_clan_war` - Upsert clan war data
+- `dbo.upsert_cwl_event` - Upsert CWL event
+- `dbo.upsert_cwl_participation` - Upsert CWL participation
+- `dbo.upsert_cw_event` - Upsert CW event
 
 ## Authentication Methods
 

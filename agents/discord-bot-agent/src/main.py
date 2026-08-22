@@ -20,7 +20,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 from config import BotConfig
-from api_client import SupercellAPIClient, APIError
+from api_client import SupercellAPIClient, APIError, RateLimitExceededError
 from database import Clan, DatabaseManager, get_default_database_url
 from cwl_service import CwlService
 from cw_service import CwService
@@ -582,25 +582,39 @@ class AliceIsBoredBot(commands.Bot):
         ]
 
         for name, sync_func in sync_tasks:
-            max_retries = 3
+            max_retries = 5
             for attempt in range(max_retries):
                 try:
                     result = await sync_func()
                     results[name] = result
                     logger.info("%s sync result (attempt %d): %s", name, attempt + 1, result)
                     break
+                except RateLimitExceededError as exc:
+                    cooldown = self.api_client.get_rate_limit_cooldown_remaining()
+                    backoff = (2 ** attempt) * 10  # Exponential backoff in seconds
+                    wait = max(backoff, cooldown, 15.0)  # Minimum 15s, or respect API cooldown
+                    logger.warning(
+                        "%s sync attempt %d hit rate limit — retrying in %.0fs "
+                        "(exponential=%ds, api_cooldown=%.0fs)",
+                        name, attempt + 1, wait, backoff, cooldown,
+                    )
+                    results[name] = {"error": str(exc)}
+                    if attempt < max_retries - 1:
+                        await asyncio.sleep(wait)
+                    else:
+                        logger.error("%s sync permanently failed after %d attempts", name, max_retries)
                 except Exception as exc:
                     logger.warning("%s sync attempt %d failed: %s", name, attempt + 1, exc)
                     results[name] = {"error": str(exc)}
                     if attempt < max_retries - 1:
-                        wait = 2 ** attempt
+                        wait = (2 ** attempt) * 5
                         logger.info("Retrying %s in %ds...", name, wait)
                         await asyncio.sleep(wait)
                     else:
                         logger.error("%s sync permanently failed after %d attempts", name, max_retries)
 
             # Spacing between different sync types to respect rate limits
-            await asyncio.sleep(3)
+            await asyncio.sleep(15)
 
         # Recalculate contribution scores
         if self.contribution_service and self.db_manager:

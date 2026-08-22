@@ -353,3 +353,276 @@ BEGIN
     INSERT INTO dbo.schema_migration (migration_name) VALUES ('v1.0-initial-schema');
 END
 GO
+-- =====================================================
+-- 6. CWL Events table - stores Clan War League season data
+-- =====================================================
+CREATE TABLE dbo.CwlEvents (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    clan_id INT NOT NULL REFERENCES dbo.clan(clan_id),
+    clan_tag NVARCHAR(20) NOT NULL,
+    season_id NVARCHAR(50) NULL,
+    league_name NVARCHAR(50) NULL,
+    division NVARCHAR(50) NULL,
+    war_count INT DEFAULT 0,
+    total_wins INT DEFAULT 0,
+    start_time DATETIME2 NOT NULL,
+    end_time DATETIME2 NOT NULL,
+    created_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+GO
+
+CREATE INDEX idx_CwlEvents_clan_tag ON dbo.CwlEvents(clan_tag);
+GO
+
+-- =====================================================
+-- 7. CWL Participations table - per-player per-day CWL stats
+-- =====================================================
+CREATE TABLE dbo.CwlParticipations (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES dbo.CwlEvents(id),
+    player_tag NVARCHAR(20) NOT NULL REFERENCES dbo.player(player_tag),
+    day_number INT NOT NULL,
+    attacks_used INT DEFAULT 0,
+    war_count_comparison INT DEFAULT 0,
+    stars_collected INT DEFAULT 0,
+    damage_percentage DECIMAL(5,2) DEFAULT 0.00,
+    clan_trophy_earned INT DEFAULT 0,
+    bonus_bases_destroyed INT DEFAULT 0,
+    created_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    UNIQUE (event_id, player_tag, day_number)
+);
+GO
+
+CREATE INDEX idx_CwlParticipations_player_tag ON dbo.CwlParticipations(player_tag);
+GO
+
+-- =====================================================
+-- 8. CW Events table - non-CWL Clan War data
+-- =====================================================
+CREATE TABLE dbo.CwEvents (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    clan_tag NVARCHAR(20) NOT NULL,
+    start_time DATETIME2 NOT NULL,
+    end_time DATETIME2 NOT NULL,
+    attack_days INT DEFAULT 1,
+    created_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+GO
+
+CREATE INDEX idx_CwEvents_clan_tag ON dbo.CwEvents(clan_tag);
+GO
+
+-- =====================================================
+-- 9. CW Participations table
+-- =====================================================
+CREATE TABLE dbo.CwParticipations (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES dbo.CwEvents(id),
+    player_tag NVARCHAR(20) NOT NULL,
+    day_number INT NOT NULL,
+    attacks_used INT DEFAULT 0,
+    attack_targets INT DEFAULT 0,
+    war_count_comparison INT DEFAULT 0,
+    stars_collected INT DEFAULT 0,
+    created_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    UNIQUE (event_id, player_tag, day_number)
+);
+GO
+
+-- =====================================================
+-- 10. Raid Events table
+-- =====================================================
+CREATE TABLE dbo.RaidEvents (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    start_time DATETIME2 NOT NULL,
+    end_time DATETIME2 NOT NULL,
+    created_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+GO
+
+-- =====================================================
+-- 11. Raid Participations table
+-- =====================================================
+CREATE TABLE dbo.RaidParticipations (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES dbo.RaidEvents(id),
+    player_tag NVARCHAR(20) NOT NULL,
+    attacks_used INT DEFAULT 0,
+    points_reached INT DEFAULT 0,
+    created_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+GO
+
+CREATE INDEX idx_RaidParticipations_player_tag ON dbo.RaidParticipations(player_tag);
+GO
+
+-- =====================================================
+-- 12. Clan Games Events table
+-- =====================================================
+CREATE TABLE dbo.ClanGamesEvents (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    start_time DATETIME2 NOT NULL,
+    end_time DATETIME2 NOT NULL,
+    created_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+GO
+
+-- =====================================================
+-- 13. Clan Games Participations table
+-- =====================================================
+CREATE TABLE dbo.ClanGamesParticipations (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES dbo.ClanGamesEvents(id),
+    player_tag NVARCHAR(20) NOT NULL,
+    attacks_used INT DEFAULT 0,
+    points_contributed INT DEFAULT 0,
+    milestone_reached NVARCHAR(20) NULL,
+    created_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+GO
+
+CREATE INDEX idx_ClanGamesParticipations_player_tag ON dbo.ClanGamesParticipations(player_tag);
+GO
+
+-- =====================================================
+-- 14. Members table - verified clan members
+-- =====================================================
+CREATE TABLE dbo.Members (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    player_tag NVARCHAR(20) NOT NULL UNIQUE,
+    discord_id NVARCHAR(20) NULL,
+    role NVARCHAR(20) DEFAULT 'Member',
+    verified_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+GO
+
+CREATE INDEX idx_Members_player_tag ON dbo.Members(player_tag);
+CREATE INDEX idx_Members_discord_id ON dbo.Members(discord_id);
+GO
+
+-- =====================================================
+-- 15. Contribution Scores table
+-- =====================================================
+CREATE TABLE dbo.ContributionScores (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    player_tag NVARCHAR(20) NOT NULL,
+    event_date DATETIME2 NOT NULL,
+    cwl_score DECIMAL(10,2) DEFAULT 0.00,
+    cw_score DECIMAL(10,2) DEFAULT 0.00,
+    raid_score DECIMAL(10,2) DEFAULT 0.00,
+    clan_games_score DECIMAL(10,2) DEFAULT 0.00,
+    total_score DECIMAL(10,2) DEFAULT 0.00,
+    created_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 DEFAULT SYSUTCDATETIME()
+);
+GO
+
+CREATE INDEX idx_ContributionScores_player_tag ON dbo.ContributionScores(player_tag);
+CREATE INDEX idx_ContributionScores_event_date ON dbo.ContributionScores(event_date);
+GO
+
+-- =====================================================
+-- Stored procedures for CWL data
+-- =====================================================
+
+-- Upsert CWL event
+CREATE OR ALTER PROCEDURE dbo.upsert_cwl_event
+    @clan_id INT,
+    @clan_tag NVARCHAR(20),
+    @season_id NVARCHAR(50),
+    @league_name NVARCHAR(50),
+    @division NVARCHAR(50),
+    @war_count INT,
+    @total_wins INT,
+    @start_time DATETIME2,
+    @end_time DATETIME2,
+    @event_id INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT @event_id = id FROM dbo.CwlEvents WHERE season_id = @season_id AND clan_tag = @clan_tag;
+
+    IF @event_id IS NOT NULL
+    BEGIN
+        UPDATE dbo.CwlEvents
+        SET clan_id = @clan_id,
+            league_name = @league_name,
+            division = @division,
+            war_count = @war_count,
+            total_wins = @total_wins,
+            start_time = @start_time,
+            end_time = @end_time,
+            updated_at = SYSUTCDATETIME()
+        WHERE id = @event_id;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO dbo.CwlEvents (clan_id, clan_tag, season_id, league_name, division,
+                                   war_count, total_wins, start_time, end_time)
+        VALUES (@clan_id, @clan_tag, @season_id, @league_name, @division,
+                @war_count, @total_wins, @start_time, @end_time);
+
+        SET @event_id = SCOPE_IDENTITY();
+    END
+END
+GO
+
+-- Upsert CWL participation
+CREATE OR ALTER PROCEDURE dbo.upsert_cwl_participation
+    @event_id INT,
+    @player_tag NVARCHAR(20),
+    @day_number INT,
+    @attacks_used INT,
+    @war_count_comparison INT,
+    @stars_collected INT,
+    @damage_percentage DECIMAL(5,2),
+    @clan_trophy_earned INT,
+    @bonus_bases_destroyed INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF EXISTS (SELECT 1 FROM dbo.CwlParticipations
+               WHERE event_id = @event_id AND player_tag = @player_tag AND day_number = @day_number)
+    BEGIN
+        UPDATE dbo.CwlParticipations
+        SET attacks_used = @attacks_used,
+            war_count_comparison = @war_count_comparison,
+            stars_collected = @stars_collected,
+            damage_percentage = @damage_percentage,
+            clan_trophy_earned = @clan_trophy_earned,
+            bonus_bases_destroyed = @bonus_bases_destroyed,
+            updated_at = SYSUTCDATETIME()
+        WHERE event_id = @event_id AND player_tag = @player_tag AND day_number = @day_number;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO dbo.CwlParticipations (event_id, player_tag, day_number, attacks_used,
+                                           war_count_comparison, stars_collected, damage_percentage,
+                                           clan_trophy_earned, bonus_bases_destroyed)
+        VALUES (@event_id, @player_tag, @day_number, @attacks_used,
+                @war_count_comparison, @stars_collected, @damage_percentage,
+                @clan_trophy_earned, @bonus_bases_destroyed);
+    END
+END
+GO
+
+-- =====================================================
+-- Update schema version
+-- =====================================================
+
+IF NOT EXISTS (SELECT 1 FROM dbo.schema_migration WHERE migration_name = 'v1.1-cwl-models')
+BEGIN
+    INSERT INTO dbo.schema_migration (migration_name) VALUES ('v1.1-cwl-models');
+END
+GO

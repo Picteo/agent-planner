@@ -18,3 +18,4 @@ dev/
 *.ps1.b64
 *.bat
 run_fix_*
+.vm-creds

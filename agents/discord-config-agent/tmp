@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+import secretstorage
+
+session = secretstorage.dbus_init()
+collections_gen = secretstorage.get_all_collections(session)
+
+total_items = 0
+for col in collections_gen:
+    items = list(col.get_all_items())
+    total_items += len(items)
+    # Get collection properties via d-bus interface
+    try:
+        col_path = col._collection.get_dbus_path()
+        col_obj = session.get_object('org.freedesktop.secrets', col_path)
+        collection_iface = secretstorage.Collection(session, col_obj)
+        print(f"\n=== Collection: {collection_alias} ({len(items)} items) ===")
+    except:
+        print(f"\n=== Collection (unknown name) ({len(items)} items) ===")
+    
+    for item in items:
+        label = item.get_label()
+        attrs = item.get_attributes()
+        secret = item.get_secret()
+        print(f"  Label: {label}")
+        print(f"  Attributes: {attrs}")
+        if secret:
+            decoded = secret.decode('utf-8', errors='replace')
+            print(f"  Secret preview: {decoded[:100]}...")
+
+print(f"\n\nTotal items found: {total_items}")
