@@ -6,6 +6,9 @@
 ## Deployment History
 | Date | Action | Status |
 |------|--------|--------|
+| 2026-08-24 08:12 | **Bot restarted via Windows Scheduled Task** — PID 4272; Discord connected, SQL connected, clan tag resolved (#2RRUYU8Y9); all initial sync tasks rate-limited (Supercell API cooldown); Scheduled Task `DiscordBotRestart` set to run every 30 min for auto-recovery | **DONE - BOT RUNNING** |
+| 2026-08-23 17:13 | **Deployed cooldown-aware retry logic to VM:** main.py (50867B) via HTTP download + PowerShell base64 decode; bot restarted successfully; initial sync completed with all tasks error (Supercell API rate-limited); cooldown logic active | **DONE - BOT RUNNING** |
+|------|--------|--------|
 | 2026-08-18 20:46 | **Deployed rate limit + sync timeout fix to VM:** 3 files via SCP (api_client.py, dashboard.py, main.py); backup at backups/backup_20260818_204604; bot started successfully with all 3 fixes verified; SSL working (no CERTIFICATE_VERIFY_FAILED); API rate-limited by Supercell from previous burst (will clear naturally) | **DONE - BOT RUNNING** |
 | 2026-08-18 00:00 | **Rate limit fix + sync timeout fix:** Added `reset_rate_limit_state()` to api_client.py, `reset_circuit_breaker()` to dashboard.py, rewrote `_sync_all_impl` as background task pattern, startup sequence now resets rate limit + circuit breaker | **READY FOR DEPLOY** |
 | 2026-08-17 22:59 | Full deployment: 15 files via chunked base64+certutil; backup at backups/backup_20260817_224308 (17 files); SSL fix in api_client.py + main.py deployed; bot restart pending (WinRM exec issues) | **DONE** |
@@ -15,17 +18,18 @@
 | 2026-08-17 20:50 | Added `DATABASE_URL` to `.env` to fix `/config` command showing "Not configured" | Done |
 | 2026-08-16 22:00 | Deploy rate limit header parsing + circuit breaker; backup created; bot restarted, API still rate-limited (cooldown active) | Done |
 
-## Current State (2026-08-18 20:55+)
-- **Bot Status:** ✅ **RUNNING** — PID 432 (main) + PID 5596 (worker), launched via `launch_bot.bat`
-- **Files on VM:** 3 new files deployed via SCP (api_client.py=13159B, dashboard.py=14882B, main.py=49946B)
-- **SSL Fix:** ✅ Working — "API client session recreated with system SSL certificate store" logged at startup
-- **Rate Limit Reset:** ✅ Working — "API rate limit state reset after restart" logged at startup
-- **Circuit Breaker Reset:** ✅ Working — "Dashboard circuit breaker reset after restart" logged at startup
-- **Database:** Connected ✓ (Azure SQL via ActiveDirectoryMsi)
-- **Backup:** `C:\ClashKing\backups\backup_20260818_204604`
-- **API Rate Limiting:** ⚠️ **Supercell API is genuinely rate-limited** from previous burst traffic. All requests return `remaining=0, reset=N/A, retry-after=0s`. This will clear naturally after the Supercell cooldown period.
-- **Deployment Method:** SCP for file transfer + PowerShell via SSH for backup/restart
+## Current State (2026-08-24 08:12+)
+- **Bot Status:** ✅ **RUNNING** — PID 4272 (Services session), launched via Windows Scheduled Task, started at 08:12:24
+- **Files on VM:** src/main.py=51607B (deployed via chunked base64+certutil Aug 23 23:08), .env updated Aug 23 23:09
+- **Session ID:** f41d9d958e2271c67e6d466465b73566
+- **API Rate Limiting:** Supercell API still rate-limited from previous burst. All 4 initial sync tasks (CWL, CW, RAID, Clan Games) failed with "Rate limit exceeded". Cooldown-aware retry will handle this.
+- **Scheduled Task:** `DiscordBotRestart` running every 30 min (SYSTEM, HIGHEST privileges) for auto-recovery
 
+## Known Issues
+- **Bot Restart via launch_bot.bat:** The batch file uses relative paths (`venv/Scripts/python.exe`). Must be launched from `C:\ClashKing` directory. Use `cmd /c 'cd /d C:\ClashKing && launch_bot.bat'` to ensure correct working directory.
+- **Supercell API Rate Limiting:** API is genuinely rate-limited from previous burst traffic (not our local state). All requests return `remaining=0, reset=N/A, retry-after=0s`. This will clear naturally after Supercell's cooldown period. Local rate limit tracking is properly reset on startup.
+- **Dashboard Periodic Sync:** The dashboard uses a 300s interval for periodic syncs. After the API rate limit clears, it should begin populating with data.
+- **WinRM/SSH Launch Issues:** Background process launch via SSH/WinRM is unreliable. Windows Scheduled Task is the reliable deployment method.
 
 ## Changes Made in This Session
 1. **`config.py`** - Improved `_load_dotenv()` function:
@@ -53,20 +57,16 @@
 
 5. **`dev/deploy_fix.py`** - Deploy script using base64 + SCP + PowerShell
 
-## Known Issues
-- **Bot Restart via launch_bot.bat:** The batch file uses relative paths (`venv/Scripts/python.exe`). Must be launched from `C:\ClashKing` directory. Use `cmd /c 'cd /d C:\ClashKing && launch_bot.bat'` to ensure correct working directory.
-- **Supercell API Rate Limiting:** API is genuinely rate-limited from previous burst traffic (not our local state). All requests return `remaining=0, reset=N/A, retry-after=0s`. This will clear naturally after Supercell's cooldown period. Local rate limit tracking is properly reset on startup.
-- **Dashboard Periodic Sync:** The dashboard uses a 300s interval for periodic syncs. After the API rate limit clears, it should begin populating with data.
-
 ## Testing Required
-1. ✅ **Bot is running** — PIDs 432 (main) + 5596 (worker)
-2. ✅ **SSL fix verified** — No `CERTIFICATE_VERIFY_FAILED` errors in this session
-3. ✅ **Rate limit reset verified** — "API rate limit state reset after restart" logged
-4. ✅ **Circuit breaker reset verified** — "Dashboard circuit breaker reset after restart" logged
-5. ⏳ **API rate limit clearing** — Waiting for Supercell API to clear from previous burst
-6. ⏳ **Test `/sync_all`** in Discord after API rate limit clears
-7. ⏳ **Verify dashboard** populates with data (channel 1528739498765320337)
-8. ⏳ **Monitor logs** for stable operation after rate limit clears
+1. ✅ **Bot is running** — PID 4272 (Services session), launched via Windows Scheduled Task
+2. ✅ **Discord connected** — AliceIsBored#0664, session f41d9d958e2271c67e6d466465b73566
+3. ✅ **Database connected** — Azure SQL connected on attempt 1
+4. ✅ **Clan tag resolved** — #2RRUYU8Y9
+5. ✅ **Slash commands registered** — Dashboard commands + 17 text channels
+6. ⏳ **API rate limit clearing** — Waiting for Supercell API to clear from previous burst
+7. ⏳ **Test `/sync_all`** in Discord after API rate limit clears
+8. ⏳ **Verify dashboard** populates with data (channel 1528739498765320337)
+9. ⏳ **Monitor logs** for stable operation after rate limit clears
 
 ## Files Changed
 - `src/api_client.py` - **SSL FIX:** Uses `ssl.create_default_context()` + `aiohttp.TCPConnector(ssl=ssl_context)` to bypass certifi CA bundle issue
@@ -82,8 +82,20 @@
 
 ## Deployment Command
 ```bash
+# To deploy files to VM (WinRM-based, from agent-planner):
 cd /home/twan/Documents/develop/agent-planner/agents/discord-bot-agent
-python3 dev/deploy_fix.py  # Deploy all files to VM
-# Then restart bot:
-ssh administrator@WIN-2HBN30ECLV2.fritz.box 'cmd /c "cd /d C:\ClashKing && set PYTHONPATH=C:\ClashKing && venv\Scripts\python.exe -u src\main.py >> logs\bot_wrapper.log 2>&1"'
+python3 dev/deploy_ssl_fix.py  # Full deployment with backup + start
+
+# To start bot manually via SSH (if scheduled task fails):
+ssh administrator@WIN-2HBN30ECLV2.fritz.box "cmd /c "cd /d C:\\ClashKing && taskkill /F /IM python.exe 2>nul && schtasks /run /tn DiscordBotRestart""
+
+# To check bot status via SSH:
+ssh administrator@WIN-2HBN30ECLV2.fritz.box "tasklist /FI \"IMAGENAME eq python.exe\""
+ssh administrator@WIN-2HBN30ECLV2.fritz.box "cmd /c \"type C:\\ClashKing\\logs\\bot_wrapper.log\""
+
+# To restart via scheduled task:
+ssh administrator@WIN-2HBN30ECLV2.fritz.box "cmd /c \"schtasks /run /tn DiscordBotRestart\""
+
+# To delete scheduled task (if needed):
+ssh administrator@WIN-2HBN30ECLV2.fritz.box "cmd /c \"schtasks /delete /tn DiscordBotRestart /f\""
 ```

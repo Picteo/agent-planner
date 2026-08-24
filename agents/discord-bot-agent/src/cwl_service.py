@@ -43,7 +43,7 @@ class CwlService:
             if clan is None:
                 return {"error": f"Clan #{clean_tag} not found"}
 
-            cwl_data = await self._api_client.get_clan_warl_states(str(clan.id))
+            cwl_data = await self._api_client.get_clan_warl_states(clan.clan_tag)
             if cwl_data is None:
                 return {"error": f"No CWL data available for clan #{clean_tag}"}
 

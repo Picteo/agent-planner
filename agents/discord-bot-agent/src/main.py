@@ -256,13 +256,21 @@ class AliceIsBoredBot(commands.Bot):
         # Run initial data sync so dashboard has real numbers
         # Fix SSL certificate verification by using system certificate store
         await self.api_client._recreate_session_with_ssl()
+        # Resolve clan tag (may auto-resolve a clan name to a tag via the API)
+        resolved_tag = self.config.resolve_clan_tag(self.api_client)
+        logger.info("Clan tag resolved: #%s", resolved_tag)
         # Reset rate limit state and circuit breaker after restart
         self.api_client.reset_rate_limit_state()
         if self.dashboard_manager:
             self.dashboard_manager.reset_circuit_breaker()
         # Delay to let rate limiter reset after startup API calls
         await asyncio.sleep(5)
+        # Override config with resolved tag for the data sync
+        original_tag = self.config.clan_tag
+        self.config.clan_tag = resolved_tag
         await self._initial_data_sync()
+        # Restore original tag (for display purposes)
+        self.config.clan_tag = original_tag
         logger.info("Initial data sync completed")
 
     async def _initial_data_sync(self):
@@ -552,6 +560,12 @@ class AliceIsBoredBot(commands.Bot):
 
             clean_tag = self.config.clan_tag.lstrip("#")
             logger.info("Manual full data sync triggered for clan #%s", clean_tag)
+
+            # Resolve clan tag via API if needed
+            resolved = self.config.resolve_clan_tag(self.api_client)
+            if resolved != clean_tag:
+                logger.info("Resolved clan name '%s' → tag '#%s'", clean_tag, resolved)
+                clean_tag = resolved
 
             # Run the actual sync in the background, catching errors so
             # the background task doesn't silently fail.

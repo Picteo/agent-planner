@@ -43,7 +43,7 @@ class CwService:
             if clan is None:
                 return {"error": f"Clan #{clean_tag} not found"}
 
-            cw_data = await self._api_client.get_clan_wars(str(clan.id))
+            cw_data = await self._api_client.get_clan_wars(clan.clan_tag)
             if cw_data is None:
                 return {"error": f"No CW data available for clan #{clean_tag}"}
 

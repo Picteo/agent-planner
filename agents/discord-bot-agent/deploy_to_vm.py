@@ -38,7 +38,7 @@ def create_backup():
 
     # Copy .env
     out, rc = _ssh(
-        'copy "\\\\ClashKing\\.env\\" "\\\\ClashKing\\backups\\backup_' + ts + '\\\\env\\" >nul 2>nul'
+        'copy "\\\\ClashKing\\.env" "\\\\ClashKing\\backups\\backup_' + ts + '\\\\.env" >nul 2>nul'
     )
     if rc == 0:
         print("  ✓ Backed up .env")

@@ -141,7 +141,7 @@ def rsync_files(s, files_to_deploy=None):
             continue
 
         if rel_path == ".env":
-            remote_dest = REMOTE_ROOT + "\\env"
+            remote_dest = REMOTE_ROOT + "\\.env"
         else:
             rel = rel_path.replace("src/", "")
             remote_dest = SRC_REMOTE + "\\" + rel

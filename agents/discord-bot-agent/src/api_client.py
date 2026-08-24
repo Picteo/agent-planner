@@ -205,32 +205,56 @@ class SupercellAPIClient:
         """Get current and past war states for a clan.
 
         GET /v1/clans/{clanId}/warstates
+
+        Normalizes the ``clan_id`` parameter by stripping the ``#`` prefix
+        that Discord commands often include (e.g. ``#AliceIsBored``
+        → ``AliceIsBored``). Supercell API URL path segments must not
+        contain a leading hash.
         """
-        url = urljoin(self.BASE_URL, f"clans/{clan_id}/warstates")
+        clean_id = clan_id.lstrip("#")
+        url = urljoin(self.BASE_URL, f"clans/{clean_id}/warstates")
         return await self._rate_limited_request("GET", url)
 
     async def get_clan_warl_states(self, clan_id: str) -> Optional[dict]:
         """Get CWL history for a clan.
 
         GET /v1/clans/{clanId}/cwallstates
+
+        Normalizes the ``clan_id`` parameter by stripping the ``#`` prefix
+        that Discord commands often include (e.g. ``#AliceIsBored``
+        → ``AliceIsBored``). Supercell API URL path segments must not
+        contain a leading hash.
         """
-        url = urljoin(self.BASE_URL, f"clans/{clan_id}/cwallstates")
+        clean_id = clan_id.lstrip("#")
+        url = urljoin(self.BASE_URL, f"clans/{clean_id}/cwallstates")
         return await self._rate_limited_request("GET", url)
 
     async def get_clan_raid(self, clan_id: str) -> Optional[dict]:
         """Get raid states for a clan.
 
         GET /v1/clans/{clanId}/raidstates
+
+        Normalizes the ``clan_id`` parameter by stripping the ``#`` prefix
+        that Discord commands often include (e.g. ``#AliceIsBored``
+        → ``AliceIsBored``). Supercell API URL path segments must not
+        contain a leading hash.
         """
-        url = urljoin(self.BASE_URL, f"clans/{clan_id}/raidstates")
+        clean_id = clan_id.lstrip("#")
+        url = urljoin(self.BASE_URL, f"clans/{clean_id}/raidstates")
         return await self._rate_limited_request("GET", url)
 
     async def get_clan_games(self, clan_id: str, season_id: str) -> Optional[dict]:
         """Get Clan Games data for a clan.
 
         GET /v1/clans/{clanId}/clanGames?seasonId={seasonId}
+
+        Normalizes the ``clan_id`` parameter by stripping the ``#`` prefix
+        that Discord commands often include (e.g. ``#AliceIsBored``
+        → ``AliceIsBored``). Supercell API URL path segments must not
+        contain a leading hash.
         """
-        url = urljoin(self.BASE_URL, f"clans/{clan_id}/clanGames")
+        clean_id = clan_id.lstrip("#")
+        url = urljoin(self.BASE_URL, f"clans/{clean_id}/clanGames")
         return await self._rate_limited_request("GET", url, params={"seasonId": season_id})
 
     # --- Player endpoints ---
@@ -250,7 +274,17 @@ class SupercellAPIClient:
         """List clans with optional filters.
 
         GET /v1/clans
+
+        Normalizes the ``tag`` parameter by stripping the ``#`` prefix
+        that Discord commands often include (e.g. ``#AliceIsBored``
+        → ``AliceIsBored``). Supercell API query parameters must not
+        contain a leading hash.
         """
+        if params:
+            params = dict(params)  # shallow-copy so we don't mutate the caller's dict
+            tag = params.get("tag")
+            if tag:
+                params["tag"] = tag.lstrip("#")
         url = urljoin(self.BASE_URL, "clans")
         return await self._rate_limited_request("GET", url, params=params)
 

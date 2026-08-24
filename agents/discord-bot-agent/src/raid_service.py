@@ -43,7 +43,7 @@ class RaidService:
             if clan is None:
                 return {"error": f"Clan #{clean_tag} not found"}
 
-            raid_data = await self._api_client.get_clan_raid(str(clan.id))
+            raid_data = await self._api_client.get_clan_raid(clan.clan_tag)
             if raid_data is None:
                 return {"error": f"No Raid data available for clan #{clean_tag}"}
 

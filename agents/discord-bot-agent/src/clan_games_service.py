@@ -45,7 +45,7 @@ class ClanGamesService:
                 return {"error": f"Clan #{clean_tag} not found"}
 
             params = {"seasonId": season_id} if season_id else None
-            cg_data = await self._api_client.get_clan_games(str(clan.id), season_id or "")
+            cg_data = await self._api_client.get_clan_games(clan.clan_tag, season_id or "")
             if cg_data is None:
                 return {"error": f"No Clan Games data available for clan #{clean_tag}"}
 
